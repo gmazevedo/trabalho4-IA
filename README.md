@@ -1,3 +1,4 @@
+# README ORIGINAL DO PROFESSOR
 # berkeleyRL3
 Python 3 port of the Berkeley Reinforcement Learning assignment. Original material, written in Python 2, is at http://ai.berkeley.edu/reinforcement.html.
 
