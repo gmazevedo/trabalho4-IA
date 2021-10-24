@@ -44,7 +44,19 @@ class ValueIterationAgent(ValueEstimationAgent):
         self.values = util.Counter() # A Counter is a dict with default 0
 
         # Write value iteration code here
-        "*** YOUR CODE HERE ***"
+        print('teste 1')
+        print(mdp.getStates())
+        print('teste 2')
+        # for state in states:
+        #     print(mdp.getPossibleActions(state))
+        # print('teste 3')
+        # print(mdp.getTransitionStatesAndProbs(states[2], 'north'))
+        # print('teste 4')
+        for i in range(iterations):
+            states = mdp.getStates()
+            for state in states:
+                self.values[state] = mdp.getReward(state, None, None) + discount * self.computeActionFromValues(state)
+
 
 
     def getValue(self, state):
@@ -60,7 +72,22 @@ class ValueIterationAgent(ValueEstimationAgent):
           value function stored in self.values.
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        # nextState = state
+        #
+        # if action == 'north':
+        #     nextState = (state[0], state[1] + 1)
+        # elif action == 'south':
+        #     nextState = (state[0], state[1] - 1)
+        # elif action == 'east':
+        #     nextState = (state[0] + 1, state[1])
+        # elif action == 'west':
+        #     nextState = (state[0] - 1, state[1])
+        #
+        # sortedRewards = self.values[nextState].argMax()
+
+        #self.values[state][action] = (1 - 0.5) * self.getValue(state) + 0.5 * (self.mdp.getReward(state, None, None) + 0.9 * sortedRewards[0])
+
+        return self.values
 
     def computeActionFromValues(self, state):
         """
@@ -72,7 +99,19 @@ class ValueIterationAgent(ValueEstimationAgent):
           terminal state, you should return None.
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        # util.raiseNotDefined()
+        possibleActions = self.mdp.getPossibleActions(state)
+        largestSum = 0
+        for action in possibleActions:
+            probStates = self.mdp.getTransitionStatesAndProbs(state, action)
+            sum = 0
+            for probState in probStates:
+                sum += self.getValue(probState[0]) * probState[1]
+            if sum > largestSum:
+                largestSum = sum
+                bestAction = action
+
+        return largestSum
 
     def getPolicy(self, state):
         return self.computeActionFromValues(state)
