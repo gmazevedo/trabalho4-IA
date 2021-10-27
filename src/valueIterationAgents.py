@@ -13,17 +13,8 @@
 
 
 import mdp, util
-import copy
-
 
 from learningAgents import ValueEstimationAgent
-
-NORTH = 'north'
-SOUTH = 'south'
-EAST  = 'east'
-WEST  = 'west'
-STOP  = 'stop'
-EXIT  = 'exit'
 
 class ValueIterationAgent(ValueEstimationAgent):
     """
@@ -51,23 +42,28 @@ class ValueIterationAgent(ValueEstimationAgent):
         self.discount = discount
         self.iterations = iterations
         self.values = util.Counter() # A Counter is a dict with default 0
-        self.sum = 0
-
-        self.values1 = util.Counter()
 
         # Write value iteration code here
-        states = mdp.getStates()
 
-        for i in range(iterations):
-            states = mdp.getStates()
+        actIter = 0
 
-            for state in states:
-                action = self.computeActionFromValues(state)
-                if(self.mdp.isTerminal(state)):
-                    continue
-                self.values1[state] = mdp.getReward(state, None, None) + discount * self.sum
+        while actIter < self.iterations:
+            allValues = util.Counter()
+            possibleStates = mdp.getStates()
 
-            self.values = copy.deepcopy(self.values1)
+            for state in possibleStates:
+                if not mdp.isTerminal(state):
+                    actValues = util.Counter()
+                    possibleActions = mdp.getPossibleActions(state)
+
+                    for action in possibleActions:
+                        actValues[action] = self.computeQValueFromValues(state,action)
+                    
+                    allValues[state] = max(actValues.values())
+            
+            actIter += 1
+            self.values = allValues.copy()
+
 
 
     def getValue(self, state):
@@ -78,47 +74,18 @@ class ValueIterationAgent(ValueEstimationAgent):
 
 
     def computeQValueFromValues(self, state, action):
-
         """
           Compute the Q-value of action in state from the
           value function stored in self.values.
         """
         "*** YOUR CODE HERE ***"
+        probPairs = self.mdp.getTransitionStatesAndProbs(state,action)
+        currentValue = 0
 
-        if(action not in self.mdp.getPossibleActions(state)):
-            #self.values[state] = 0
-            return 0
+        for pair in probPairs:
+            currentValue += pair[1]*(self.mdp.getReward(state,action,pair[0])+self.discount*self.values[pair[0]])
 
-        ALPHA = 0.5
-
-        nextState = state
-        
-        if(self.mdp.isTerminal(state)):
-            nextState = (state[0], state[1])
-        elif action == NORTH:
-             nextState = (state[0], state[1] + 1)
-        elif action == SOUTH:
-             nextState = (state[0], state[1] - 1)
-        elif action == EAST:
-             nextState = (state[0] + 1, state[1])
-        elif action == WEST:
-             nextState = (state[0] - 1, state[1])
-        
-        max = -1
-        max_key = ""
-
-        for key in self.values:
-            print("Chave:", key, "Valor:", self.values[key])
-            if(self.values[key] > max):
-                max_key = key
-                max = self.values[key]
-
-        sortedRewards = self.values.argMax()
-        print("=====>", max), max_key
-
-        self.values1[state] = (1 - ALPHA) * self.getValue(state) + ALPHA * (self.mdp.getReward(state, nextState, action) + 0.9 * max)
-        
-        return self.values[state]
+        return currentValue
 
     def computeActionFromValues(self, state):
         """
@@ -131,33 +98,31 @@ class ValueIterationAgent(ValueEstimationAgent):
         """
         "*** YOUR CODE HERE ***"
         # util.raiseNotDefined()
-        possibleActions = self.mdp.getPossibleActions(state)
-        largestSum = 0
-        best_action = 0
-
+        # if terminal, return None
+        if self.mdp.isTerminal(state):
+            return None
         
-        if(len(possibleActions) == 0):
+        # legal actions
+        possibleActions = self.mdp.getPossibleActions(state)
+
+        if len(possibleActions) == 0:
             return None
 
+        values = util.Counter()
+
         for action in possibleActions:
-            probStates = self.mdp.getTransitionStatesAndProbs(state, action)
-            sum = 0
-
-            #Calculo para cada ação
-            for probState in probStates:
-                sum += self.getValue(probState[0]) * probState[1]
             
-            if sum > largestSum:
-                largestSum = sum
-                best_action = action
+            values[action] = self.computeQValueFromValues(state,action)
+            
+            #probStates = self.mdp.getTransitionStatesAndProbs(state, action)
+            #sum = 0
+            #for probState in probStates:
+            #    sum += self.getValue(possibleActions[0]) * possibleActions[1]
+            #if sum > largestSum:
+            #    largestSum = sum
+            #    bestAction = action
 
-        self.sum = largestSum
-
-        if(best_action == 0):
-            best_action = EXIT
-
-        #print("$$$$$", best_action, type(best_action))
-        return best_action
+        return values.argMax()
 
     def getPolicy(self, state):
         return self.computeActionFromValues(state)
