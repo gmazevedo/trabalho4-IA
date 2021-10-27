@@ -86,10 +86,8 @@ class ValueIterationAgent(ValueEstimationAgent):
         "*** YOUR CODE HERE ***"
 
         if(action not in self.mdp.getPossibleActions(state)):
-            self.values[state] = 0
-            return self.values[state]
-
-        old_values = copy.deepcopy(self.values)
+            #self.values[state] = 0
+            return 0
 
         ALPHA = 0.5
 
@@ -106,10 +104,19 @@ class ValueIterationAgent(ValueEstimationAgent):
         elif action == WEST:
              nextState = (state[0] - 1, state[1])
         
+        max = -1
+        max_key = ""
 
-        sortedRewards = old_values.argMax()
+        for key in self.values:
+            print("Chave:", key, "Valor:", self.values[key])
+            if(self.values[key] > max):
+                max_key = key
+                max = self.values[key]
 
-        self.values1[state] = (1 - ALPHA) * self.getValue(state) + ALPHA * (self.mdp.getReward(state, nextState, action) + 0.9 * sortedRewards[0])
+        sortedRewards = self.values.argMax()
+        print("=====>", max), max_key
+
+        self.values1[state] = (1 - ALPHA) * self.getValue(state) + ALPHA * (self.mdp.getReward(state, nextState, action) + 0.9 * max)
         
         return self.values[state]
 
@@ -145,6 +152,11 @@ class ValueIterationAgent(ValueEstimationAgent):
                 best_action = action
 
         self.sum = largestSum
+
+        if(best_action == 0):
+            best_action = EXIT
+
+        #print("$$$$$", best_action, type(best_action))
         return best_action
 
     def getPolicy(self, state):
