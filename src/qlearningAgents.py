@@ -130,12 +130,12 @@ class QLearningAgent(ReinforcementAgent):
         if len(legalActions) == 0:
           return None
 
-        greaterChoice = util.flipCoin(self.epsilon)
+        greaterChoice = not util.flipCoin(self.epsilon)
 
         if greaterChoice:
           action = self.getPolicy(state)
         else:
-          action = random.choice(self.getLegalActions(state))
+          action = random.choice(legalActions)
 
         return action
 
